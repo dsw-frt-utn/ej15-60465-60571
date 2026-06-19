@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Dsw2026Ej15.Domain.Exceptions
+namespace Dsw2026Ej15.Domain.Entities;
+
+public class ValidationException : Exception
 {
-    internal class ValidationException
-    {
-    }
+    public ValidationException(string message) : base(message) { }
 }
