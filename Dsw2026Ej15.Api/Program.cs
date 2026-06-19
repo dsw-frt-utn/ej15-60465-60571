@@ -1,33 +1,44 @@
-using Dsw2026Ej15.Data;
-using Dsw2026Ej15.Domain.Entities; 
-using Dsw2026Ej15.Api.Middleware;
+using Dsw2026Ej15.Data.Persistence;
+using Dsw2026Ej15.Domain.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-builder.Services.AddSwaggerGen();
-
-
+// Add services to the container.
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi();
 builder.Services.AddSingleton<IPersistence, PersistenceInMemory>();
-
-
-builder.Services.AddHealthChecks();
-
 var app = builder.Build();
 
-app.UseMiddleware<ExceptionMiddleware>();
-
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
 }
 
-app.UseAuthorization();
+app.UseHttpsRedirection();
 
-app.MapHealthChecks("/health-check");
+var summaries = new[]
+{
+    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+};
 
-app.MapControllers();
+app.MapGet("/weatherforecast", () =>
+{
+    var forecast =  Enumerable.Range(1, 5).Select(index =>
+        new WeatherForecast
+        (
+            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+            Random.Shared.Next(-20, 55),
+            summaries[Random.Shared.Next(summaries.Length)]
+        ))
+        .ToArray();
+    return forecast;
+})
+.WithName("GetWeatherForecast");
 
 app.Run();
 
+record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+{
+    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+}
